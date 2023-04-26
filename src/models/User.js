@@ -60,12 +60,6 @@ const userSchema = new Schema(
 	}
 );
 
-userSchema.virtual('events', {
-	ref: 'Event',
-	foreignField: 'user',
-	localField: '_id',
-});
-
 userSchema.pre('save', function (next) {
 	const user = this;
 	if (!user.isModified('password')) {

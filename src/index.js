@@ -5,6 +5,7 @@ const { set, connect, connection } = require('mongoose');
 const express = require('express');
 const cors = require('cors');
 const userRoutes = require('./routes/UserRoutes');
+const eventRoutes = require('./routes/EventRoutes');
 config();
 
 const app = express();
@@ -27,6 +28,7 @@ connection.on('error', (err) => {
 });
 
 app.use(userRoutes);
+app.use(eventRoutes);
 
 const port = process.env.PORT || 3005;
 
