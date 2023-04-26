@@ -3,6 +3,7 @@ const { model } = require('mongoose');
 const { validateEvent } = require('../util/validators');
 const requireAuth = require('../middleware/requireAuth');
 const Event = model('Event');
+const User = model('User');
 const router = Router();
 
 // Add
@@ -91,7 +92,7 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 	let errors = {};
 	const targetEvent = await Event.findById(req?.body?.eventId);
 	const alreadyAttending = targetEvent?.attendees?.find(
-		(user) => user?.toString() === req?.user?._id.toString()
+		(user) => user?._id.toString() === req?.user?._id.toString()
 	);
 
 	if (alreadyAttending) {
@@ -99,12 +100,20 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 		return res.status(400).json(errors);
 	}
 
+	const user = await User.findById(req?.user?._id);
+
+	const attendee = {
+		_id: user._id,
+		name: user.firstName + ' ' + user.lastName,
+		headcount: req?.body?.headcount,
+	};
+
 	try {
 		await Event.findByIdAndUpdate(
 			req?.body?.eventId,
 			{
 				$push: {
-					attentdees: req?.user?._id,
+					attendees: attendee,
 				},
 			},
 			{
@@ -125,7 +134,7 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 	let errors = {};
 	const targetEvent = await Event.findById(req?.body?.eventId);
 	const alreadyAttending = targetEvent?.attendees?.find(
-		(user) => user?.toString() === req?.user?._id.toString()
+		(user) => user?._id.toString() === req?.user?._id.toString()
 	);
 
 	if (!alreadyAttending) {
@@ -133,12 +142,20 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 		return res.status(400).json(errors);
 	}
 
+	const user = await User.findById(req?.user?._id);
+
+	const attendee = {
+		_id: user._id,
+		name: user.firstName + ' ' + user.lastName,
+		headcount: req?.body?.headcount,
+	};
+
 	try {
 		await Event.findByIdAndUpdate(
 			req?.body?.eventId,
 			{
 				$pull: {
-					attendees: req?.user?._id,
+					attendees: attendee,
 				},
 			},
 			{
@@ -155,7 +172,7 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 });
 
 // Delete
-router.delete('events/:id', requireAuth, async (req, res) => {
+router.delete('/events/:id', requireAuth, async (req, res) => {
 	const errors = {};
 	const { id } = req?.params;
 

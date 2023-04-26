@@ -3,7 +3,7 @@ const { Schema, model } = require('mongoose');
 const eventSchema = new Schema(
 	{
 		date: {
-			type: Date,
+			type: String,
 			required: true,
 		},
 		time: {
@@ -16,8 +16,7 @@ const eventSchema = new Schema(
 		},
 		attendees: [
 			{
-				type: Schema.Types.ObjectId,
-				ref: 'User',
+				type: Object,
 			},
 		],
 	},
