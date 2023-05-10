@@ -80,3 +80,16 @@ exports.validateReset = (data) => {
 		valid: Object.keys(errors).length === 0 ? true : false,
 	};
 };
+
+exports.validateEvent = (data) => {
+	let errors = {};
+
+	if (isEmpty(data?.date)) errors.date = 'Must not be empty!';
+	if (isEmpty(data?.time)) errors.time = 'Must not be empty!';
+	if (isEmpty(data?.location)) errors.location = 'Must not be empty!';
+
+	return {
+		errors,
+		valid: Object.keys(errors).length === 0 ? true : false,
+	};
+};

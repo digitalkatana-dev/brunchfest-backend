@@ -12,6 +12,11 @@ const userSchema = new Schema(
 			type: String,
 			required: [true, 'Last name is required'],
 		},
+		phone: {
+			type: String,
+			required: [true, 'Mobile number is required'],
+			unique: true,
+		},
 		email: {
 			type: String,
 			required: [true, 'Email is required'],
@@ -20,11 +25,6 @@ const userSchema = new Schema(
 		password: {
 			type: String,
 			required: [true, 'Password is required'],
-		},
-		phone: {
-			type: String,
-			required: [true, 'Mobile number is required'],
-			unique: true,
 		},
 		isAdmin: {
 			type: Boolean,
@@ -59,12 +59,6 @@ const userSchema = new Schema(
 		timestamps: true,
 	}
 );
-
-userSchema.virtual('events', {
-	ref: 'Event',
-	foreignField: 'user',
-	localField: '_id',
-});
 
 userSchema.pre('save', function (next) {
 	const user = this;

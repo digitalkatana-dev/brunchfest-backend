@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { model } = require('mongoose');
 const { sign } = require('jsonwebtoken');
-// const {genSalt, hash} = require('bcrypt');
+const { genSalt, hash } = require('bcrypt');
 const { createHash } = require('crypto');
 const { config } = require('dotenv');
 const {
@@ -11,13 +11,13 @@ const {
 	validateReset,
 } = require('../util/validators');
 const requireAuth = require('../middleware/requireAuth');
-const sgMail = require('@sendgrid/mail');
+// const sgMail = require('@sendgrid/mail');
 
 const User = model('User');
 const router = Router();
 config();
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Register
 router.post('/users/register', async (req, res) => {
@@ -47,9 +47,12 @@ router.post('/users/register', async (req, res) => {
 
 		res.json({ userData, token });
 	} catch (err) {
-		err.code === 11000
-			? (errors.auth = 'Email already in use!')
-			: 'Error registering user!';
+		if (err.code === 11000) {
+			if (err.keyValue.email) errors.auth = 'Email already in use!';
+			if (err.keyValue.phone) errors.auth = 'Phone number already in use!';
+		} else {
+			errors.auth = 'Error registering user!';
+		}
 		return res.status(422).json(errors);
 	}
 });
@@ -171,6 +174,105 @@ router.post('/users/login', async (req, res) => {
 // 	}
 // });
 
+// Get All
+router.get('/users', requireAuth, async (req, res) => {
+	let errors = {};
+	let userData = [];
+
+	try {
+		const users = await User.find({});
+		users.forEach((user) => {
+			userData.push({
+				_id: user._id,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				email: user.email,
+				phone: user.phone,
+				isAdmin: user.isAdmin,
+				emailConsent: user.emailConsent,
+				textConsent: user.textConsent,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
+				id: user.id,
+			});
+		});
+
+		res.json(userData);
+	} catch (err) {
+		errors.user = 'Error getting users';
+		return res.status(400).json(errors);
+	}
+});
+
+// Get 1
+router.get('/users/:id', requireAuth, async (req, res) => {
+	let errors = {};
+	const { id } = req?.params;
+
+	try {
+		const user = await User.findById(id);
+
+		if (!user) {
+			errors.user = 'Error, user not found!';
+			return res.status(404).json(errors);
+		}
+
+		const userData = {
+			_id: user._id,
+			firstName: user.firstName,
+			lastName: user.lastName,
+			email: user.email,
+			phone: user.phone,
+			isAdmin: user.isAdmin,
+			emailConsent: user.emailConsent,
+			textConsent: user.textConsent,
+			createdAt: user.createdAt,
+			updatedAt: user.updatedAt,
+			id: user.id,
+		};
+
+		res.json(userData);
+	} catch (err) {
+		errors.user = 'Error getting user';
+		return res.status(400).json(errors);
+	}
+});
+
+// Update
+router.put('/users/update/:id', requireAuth, async (req, res) => {
+	const { id } = req?.params;
+
+	const user = await User.findById(id);
+
+	if (!user) {
+		errors.user = 'Error, user not found!';
+		return res.status(404).json(errors);
+	}
+
+	try {
+		if (req?.body?.password) {
+			const salt = await genSalt(10);
+			req.body.password = await hash(req?.body?.password, salt);
+		}
+
+		await User.findByIdAndUpdate(
+			id,
+			{
+				$set: req?.body,
+			},
+			{
+				new: true,
+				runValidators: true,
+			}
+		);
+
+		res.json({ message: 'User updated successfully!' });
+	} catch (err) {
+		errors.user = 'Error updating user!';
+		return res.status(400).json(errors);
+	}
+});
+
 // Delete User
 router.delete('/users/:id', requireAuth, async (req, res) => {
 	const errors = {};
@@ -184,7 +286,7 @@ router.delete('/users/:id', requireAuth, async (req, res) => {
 	}
 
 	try {
-		await user?.delete();
+		await User.findByIdAndDelete(id);
 		res.json({ message: 'User deleted successfully!' });
 	} catch (err) {
 		errors.user = 'Error deleting user!';
