@@ -19,6 +19,11 @@ const eventSchema = new Schema(
 				type: Object,
 			},
 		],
+		pics: [
+			{
+				type: String,
+			},
+		],
 	},
 	{
 		toJSON: {
