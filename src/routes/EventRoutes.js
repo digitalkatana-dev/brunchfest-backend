@@ -25,7 +25,7 @@ router.post('/events', requireAuth, async (req, res) => {
 });
 
 // Get All
-router.get('/events', requireAuth, async (req, res) => {
+router.get('/events', async (req, res) => {
 	let errors = {};
 
 	try {
