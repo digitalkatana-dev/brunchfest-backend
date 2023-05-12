@@ -14,6 +14,10 @@ const eventSchema = new Schema(
 			type: String,
 			required: true,
 		},
+		label: {
+			type: String,
+			required: true,
+		},
 		attendees: [
 			{
 				type: Object,
