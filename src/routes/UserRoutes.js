@@ -41,6 +41,7 @@ router.post('/users/register', async (req, res) => {
 			email: user?.email,
 			phone: user?.phone,
 			isAdmin: user?.isAdmin,
+			myEvents: user?.myEvents,
 			emailConsent: user?.emailConsent,
 			textConsent: user?.textConsent,
 		};
@@ -85,6 +86,7 @@ router.post('/users/login', async (req, res) => {
 			email: user?.email,
 			phone: user?.phone,
 			isAdmin: user?.isAdmin,
+			myEvents: user?.myEvents,
 			emailConsent: user?.emailConsent,
 			textConsent: user?.textConsent,
 		};
@@ -183,17 +185,18 @@ router.get('/users', requireAuth, async (req, res) => {
 		const users = await User.find({});
 		users.forEach((user) => {
 			userData.push({
-				_id: user._id,
-				firstName: user.firstName,
-				lastName: user.lastName,
-				email: user.email,
-				phone: user.phone,
-				isAdmin: user.isAdmin,
-				emailConsent: user.emailConsent,
-				textConsent: user.textConsent,
-				createdAt: user.createdAt,
-				updatedAt: user.updatedAt,
-				id: user.id,
+				_id: user?._id,
+				firstName: user?.firstName,
+				lastName: user?.lastName,
+				email: user?.email,
+				phone: user?.phone,
+				isAdmin: user?.isAdmin,
+				myEvents: user?.myEvents,
+				emailConsent: user?.emailConsent,
+				textConsent: user?.textConsent,
+				createdAt: user?.createdAt,
+				updatedAt: user?.updatedAt,
+				id: user?.id,
 			});
 		});
 
@@ -218,17 +221,18 @@ router.get('/users/:id', requireAuth, async (req, res) => {
 		}
 
 		const userData = {
-			_id: user._id,
-			firstName: user.firstName,
-			lastName: user.lastName,
-			email: user.email,
-			phone: user.phone,
-			isAdmin: user.isAdmin,
-			emailConsent: user.emailConsent,
-			textConsent: user.textConsent,
-			createdAt: user.createdAt,
-			updatedAt: user.updatedAt,
-			id: user.id,
+			_id: user?._id,
+			firstName: user?.firstName,
+			lastName: user?.lastName,
+			email: user?.email,
+			phone: user?.phone,
+			isAdmin: user?.isAdmin,
+			myEvents: user?.myEvents,
+			emailConsent: user?.emailConsent,
+			textConsent: user?.textConsent,
+			createdAt: user?.createdAt,
+			updatedAt: user?.updatedAt,
+			id: user?.id,
 		};
 
 		res.json(userData);

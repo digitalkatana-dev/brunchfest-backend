@@ -31,6 +31,9 @@ const userSchema = new Schema(
 			required: true,
 			default: false,
 		},
+		myEvents: {
+			type: Array,
+		},
 		emailConsent: {
 			type: Boolean,
 			default: true,

@@ -134,12 +134,27 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 			}
 		);
 
+		await User.findByIdAndUpdate(
+			req?.user?._id,
+			{
+				$push: {
+					myEvents: req?.body?.eventId,
+				},
+			},
+			{
+				new: true,
+			}
+		);
+
 		const updatedAll = await Event.find({});
 		const updatedEvent = await Event.findById(req?.body?.eventId);
+		const updatedUser = await User.findById(req?.user?._id);
+		const updatedMyEvents = updatedUser?.myEvents;
 
 		res.json({
 			updatedAll,
 			updatedEvent,
+			updatedMyEvents,
 			success: { message: 'You are now attending this event!' },
 		});
 	} catch (err) {
@@ -183,12 +198,27 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 			}
 		);
 
+		await User.findByIdAndUpdate(
+			req?.user?._id,
+			{
+				$pull: {
+					myEvents: req?.body?.eventId,
+				},
+			},
+			{
+				new: true,
+			}
+		);
+
 		const updatedAll = await Event.find({});
 		const updatedEvent = await Event.findById(req?.body?.eventId);
+		const updatedUser = await User.findById(req?.user?._id);
+		const updatedMyEvents = updatedUser?.myEvents;
 
 		res.json({
 			updatedAll,
 			updatedEvent,
+			updatedMyEvents,
 			success: { message: 'You are no longer attending this event!' },
 		});
 	} catch (err) {
