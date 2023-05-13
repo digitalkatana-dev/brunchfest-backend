@@ -85,7 +85,14 @@ router.put('/events/update/:id', requireAuth, async (req, res) => {
 			}
 		);
 
-		res.json({ message: 'Event updated successfully!' });
+		const updatedAll = await Event.find({});
+		const updatedEvent = await Event.findById(id);
+
+		res.json({
+			updatedAll,
+			updatedEvent,
+			success: { message: 'Event updated successfully!' },
+		});
 	} catch (err) {
 		errors.event = 'Error updating event!';
 		return res.status(400).json(errors);
