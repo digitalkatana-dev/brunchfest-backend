@@ -8,14 +8,19 @@ const router = Router();
 
 // Add
 router.post('/events', requireAuth, async (req, res) => {
-	let eventData;
+	const { _id } = req?.user;
+	let eventData = {};
 
 	const { valid, errors } = validateEvent(req?.body);
 
 	if (!valid) return res.status(400).json(errors);
 
 	try {
-		const event = new Event(req?.body);
+		eventData = {
+			...req?.body,
+			createdBy: _id,
+		};
+		const event = new Event(eventData);
 		await event?.save();
 		res.json(event);
 	} catch (err) {
@@ -122,7 +127,14 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 			}
 		);
 
-		res.json({ message: 'You are now attending this event!' });
+		const updatedAll = await Event.find({});
+		const updatedEvent = await Event.findById(req?.body?.eventId);
+
+		res.json({
+			updatedAll,
+			updatedEvent,
+			success: { message: 'You are now attending this event!' },
+		});
 	} catch (err) {
 		errors.event = 'Error adding attendee!';
 		return res.status(400).json(errors);
@@ -164,7 +176,14 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 			}
 		);
 
-		res.json({ message: 'You are no longer attending this event!' });
+		const updatedAll = await Event.find({});
+		const updatedEvent = await Event.findById(req?.body?.eventId);
+
+		res.json({
+			updatedAll,
+			updatedEvent,
+			success: { message: 'You are no longer attending this event!' },
+		});
 	} catch (err) {
 		errors.event = 'Error removing attendee!';
 		return res.status(400).json(errors);
