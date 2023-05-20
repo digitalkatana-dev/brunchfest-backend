@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { model } = require('mongoose');
-const { validateEvent } = require('../util/validators');
+const { validateEvent, validateRsvp } = require('../util/validators');
 const requireAuth = require('../middleware/requireAuth');
 const Event = model('Event');
 const User = model('User');
@@ -101,11 +101,14 @@ router.put('/events/update/:id', requireAuth, async (req, res) => {
 
 // Add Attendee
 router.put('/events/add-attendee', requireAuth, async (req, res) => {
-	let errors = {};
 	const targetEvent = await Event.findById(req?.body?.eventId);
 	const alreadyAttending = targetEvent?.attendees?.find(
 		(user) => user?._id.toString() === req?.user?._id.toString()
 	);
+
+	const { valid, errors } = validateRsvp(req?.body);
+
+	if (!valid) return res.status(400).json(errors);
 
 	if (alreadyAttending) {
 		errors.event = 'You are already attending this event!';
@@ -117,6 +120,7 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 	const attendee = {
 		_id: user._id,
 		name: user.firstName + ' ' + user.lastName,
+		phone: user.phone,
 		headcount: req?.body?.headcount,
 	};
 

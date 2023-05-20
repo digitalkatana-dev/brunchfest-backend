@@ -11,6 +11,12 @@ const isPhone = (data) => {
 	else return false;
 };
 
+const isNumber = (data) => {
+	const regex = /^\d+$/;
+	if (data?.match(regex)) return true;
+	else return false;
+};
+
 const isEmpty = (data) => {
 	if (data?.trim() === '') return true;
 	else return false;
@@ -87,6 +93,21 @@ exports.validateEvent = (data) => {
 	if (isEmpty(data?.date)) errors.date = 'Must not be empty!';
 	if (isEmpty(data?.time)) errors.time = 'Must not be empty!';
 	if (isEmpty(data?.location)) errors.location = 'Must not be empty!';
+
+	return {
+		errors,
+		valid: Object.keys(errors).length === 0 ? true : false,
+	};
+};
+
+exports.validateRsvp = (data) => {
+	let errors = {};
+
+	if (isEmpty(data?.headcount)) {
+		errors.headcount = 'Must not be empty!';
+	} else if (!isNumber(data?.headcount)) {
+		errors.headcount = 'Numbers only!';
+	}
 
 	return {
 		errors,
