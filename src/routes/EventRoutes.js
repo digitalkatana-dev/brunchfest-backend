@@ -3,6 +3,7 @@ const { model } = require('mongoose');
 const { config } = require('dotenv');
 const { validateEvent, validateRsvp } = require('../util/validators');
 const requireAuth = require('../middleware/requireAuth');
+const sgMail = require('@sendgrid/mail');
 const Event = model('Event');
 const User = model('User');
 const router = Router();
@@ -12,6 +13,7 @@ const twilioClient = require('twilio')(
 	process.env.TWILIO_ACCOUNT_SID,
 	process.env.TWILIO_AUTH_TOKEN
 );
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Add
 router.post('/events', requireAuth, async (req, res) => {
@@ -166,6 +168,16 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 				from: process.env.TWILIO_NUMBER,
 				to: `+1${user.phone}`,
 			});
+		} else if (user.notify === 'email') {
+			const msg = {
+				to: user.email,
+				from: process.env.SG_BASE_EMAIL,
+				subject: 'RSVP Accepted!',
+				text: "You have successfully RSVP'd for brunch",
+				html: '<strong>See you there!</strong>',
+			};
+
+			await sgMail.send(msg);
 		}
 
 		const updatedAll = await Event.find({});
@@ -238,6 +250,16 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 				from: process.env.TWILIO_NUMBER,
 				to: `+1${user.phone}`,
 			});
+		} else if (user.notify === 'email') {
+			const msg = {
+				to: user.email,
+				from: process.env.SG_BASE_EMAIL,
+				subject: 'RSVP Canceled!',
+				text: 'You have successfully canceled your RSVP for brunch',
+				html: '<strong>Maybe next month!</strong>',
+			};
+
+			await sgMail.send(msg);
 		}
 
 		const updatedAll = await Event.find({});
@@ -270,6 +292,16 @@ router.post('/events/reminders', requireAuth, async (req, res) => {
 					from: process.env.TWILIO_NUMBER,
 					to: `+1${guest.phone}`,
 				});
+			} else if (guest.notify === 'email') {
+				const msg = {
+					to: guest.email,
+					from: process.env.SG_BASE_EMAIL,
+					subject: 'Almost There...',
+					text: 'You are only 1 week away from brunch!',
+					html: '<strong>So close!</strong>',
+				};
+
+				await sgMail.send(msg);
 			}
 		});
 
