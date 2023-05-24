@@ -14,6 +14,15 @@ const eventSchema = new Schema(
 			type: String,
 			required: true,
 		},
+		label: {
+			type: String,
+			required: true,
+		},
+		createdBy: {
+			type: Schema.Types.ObjectId,
+			ref: 'User',
+			required: [true, 'Author is required'],
+		},
 		attendees: [
 			{
 				type: Object,

@@ -26,18 +26,18 @@ const userSchema = new Schema(
 			type: String,
 			required: [true, 'Password is required'],
 		},
+		notify: {
+			type: String,
+			required: [true, 'Notification preference is required'],
+			enum: ['sms', 'email'],
+		},
 		isAdmin: {
 			type: Boolean,
 			required: true,
 			default: false,
 		},
-		emailConsent: {
-			type: Boolean,
-			default: true,
-		},
-		textConsent: {
-			type: Boolean,
-			default: true,
+		myEvents: {
+			type: Array,
 		},
 		passwordChangeAt: {
 			type: Date,

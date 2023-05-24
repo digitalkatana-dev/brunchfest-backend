@@ -38,11 +38,11 @@ router.post('/users/register', async (req, res) => {
 			_id: user?._id,
 			firstName: user?.firstName,
 			lastName: user?.lastName,
-			email: user?.email,
 			phone: user?.phone,
+			email: user?.email,
+			notify: user?.notify,
 			isAdmin: user?.isAdmin,
-			emailConsent: user?.emailConsent,
-			textConsent: user?.textConsent,
+			myEvents: user?.myEvents,
 		};
 
 		res.json({ userData, token });
@@ -82,11 +82,11 @@ router.post('/users/login', async (req, res) => {
 			_id: user?._id,
 			firstName: user?.firstName,
 			lastName: user?.lastName,
-			email: user?.email,
 			phone: user?.phone,
+			email: user?.email,
+			notify: user?.notify,
 			isAdmin: user?.isAdmin,
-			emailConsent: user?.emailConsent,
-			textConsent: user?.textConsent,
+			myEvents: user?.myEvents,
 		};
 
 		res.json({ userData, token });
@@ -183,17 +183,14 @@ router.get('/users', requireAuth, async (req, res) => {
 		const users = await User.find({});
 		users.forEach((user) => {
 			userData.push({
-				_id: user._id,
-				firstName: user.firstName,
-				lastName: user.lastName,
-				email: user.email,
-				phone: user.phone,
-				isAdmin: user.isAdmin,
-				emailConsent: user.emailConsent,
-				textConsent: user.textConsent,
-				createdAt: user.createdAt,
-				updatedAt: user.updatedAt,
-				id: user.id,
+				_id: user?._id,
+				firstName: user?.firstName,
+				lastName: user?.lastName,
+				phone: user?.phone,
+				email: user?.email,
+				notify: user?.notify,
+				isAdmin: user?.isAdmin,
+				myEvents: user?.myEvents,
 			});
 		});
 
@@ -218,17 +215,14 @@ router.get('/users/:id', requireAuth, async (req, res) => {
 		}
 
 		const userData = {
-			_id: user._id,
-			firstName: user.firstName,
-			lastName: user.lastName,
-			email: user.email,
-			phone: user.phone,
-			isAdmin: user.isAdmin,
-			emailConsent: user.emailConsent,
-			textConsent: user.textConsent,
-			createdAt: user.createdAt,
-			updatedAt: user.updatedAt,
-			id: user.id,
+			_id: user?._id,
+			firstName: user?.firstName,
+			lastName: user?.lastName,
+			phone: user?.phone,
+			email: user?.email,
+			notify: user?.notify,
+			isAdmin: user?.isAdmin,
+			myEvents: user?.myEvents,
 		};
 
 		res.json(userData);
