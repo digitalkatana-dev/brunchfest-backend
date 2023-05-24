@@ -38,12 +38,11 @@ router.post('/users/register', async (req, res) => {
 			_id: user?._id,
 			firstName: user?.firstName,
 			lastName: user?.lastName,
-			email: user?.email,
 			phone: user?.phone,
+			email: user?.email,
+			notify: user?.notify,
 			isAdmin: user?.isAdmin,
 			myEvents: user?.myEvents,
-			emailConsent: user?.emailConsent,
-			textConsent: user?.textConsent,
 		};
 
 		res.json({ userData, token });
@@ -83,12 +82,11 @@ router.post('/users/login', async (req, res) => {
 			_id: user?._id,
 			firstName: user?.firstName,
 			lastName: user?.lastName,
-			email: user?.email,
 			phone: user?.phone,
+			email: user?.email,
+			notify: user?.notify,
 			isAdmin: user?.isAdmin,
 			myEvents: user?.myEvents,
-			emailConsent: user?.emailConsent,
-			textConsent: user?.textConsent,
 		};
 
 		res.json({ userData, token });
@@ -188,15 +186,11 @@ router.get('/users', requireAuth, async (req, res) => {
 				_id: user?._id,
 				firstName: user?.firstName,
 				lastName: user?.lastName,
-				email: user?.email,
 				phone: user?.phone,
+				email: user?.email,
+				notify: user?.notify,
 				isAdmin: user?.isAdmin,
 				myEvents: user?.myEvents,
-				emailConsent: user?.emailConsent,
-				textConsent: user?.textConsent,
-				createdAt: user?.createdAt,
-				updatedAt: user?.updatedAt,
-				id: user?.id,
 			});
 		});
 
@@ -224,15 +218,11 @@ router.get('/users/:id', requireAuth, async (req, res) => {
 			_id: user?._id,
 			firstName: user?.firstName,
 			lastName: user?.lastName,
-			email: user?.email,
 			phone: user?.phone,
+			email: user?.email,
+			notify: user?.notify,
 			isAdmin: user?.isAdmin,
 			myEvents: user?.myEvents,
-			emailConsent: user?.emailConsent,
-			textConsent: user?.textConsent,
-			createdAt: user?.createdAt,
-			updatedAt: user?.updatedAt,
-			id: user?.id,
 		};
 
 		res.json(userData);

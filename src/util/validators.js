@@ -27,17 +27,18 @@ exports.validateRegistration = (data) => {
 
 	if (isEmpty(data?.firstName)) errors.firstName = 'Must not be empty!';
 	if (isEmpty(data?.lastName)) errors.lastName = 'Must not be empty!';
+	if (isEmpty(data?.phone)) {
+		errors.phone = 'Must not be empty!';
+	} else if (!isPhone(data?.phone)) {
+		errors.phone = 'Must be a valid phone number!';
+	}
 	if (isEmpty(data?.email)) {
 		errors.email = 'Must not be empty!';
 	} else if (!isEmail(data?.email)) {
 		errors.email = 'Must be a valid email address!';
 	}
 	if (isEmpty(data?.password)) errors.password = 'Must not be empty!';
-	if (isEmpty(data?.phone)) {
-		errors.phone = 'Must not be empty!';
-	} else if (!isPhone(data?.phone)) {
-		errors.phone = 'Must be a valid phone number!';
-	}
+	if (isEmpty(data?.notify)) errors.notify = 'Must not be empty!';
 
 	return {
 		errors,

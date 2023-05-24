@@ -1,10 +1,17 @@
 const { Router } = require('express');
 const { model } = require('mongoose');
+const { config } = require('dotenv');
 const { validateEvent, validateRsvp } = require('../util/validators');
 const requireAuth = require('../middleware/requireAuth');
 const Event = model('Event');
 const User = model('User');
 const router = Router();
+config();
+
+const twilioClient = require('twilio')(
+	process.env.TWILIO_ACCOUNT_SID,
+	process.env.TWILIO_AUTH_TOKEN
+);
 
 // Add
 router.post('/events', requireAuth, async (req, res) => {
@@ -25,6 +32,7 @@ router.post('/events', requireAuth, async (req, res) => {
 		res.json(event);
 	} catch (err) {
 		errors.event = 'Error creating event!';
+		console.log(err);
 		return res.status(400).json(errors);
 	}
 });
@@ -120,8 +128,10 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 	const attendee = {
 		_id: user._id,
 		name: user.firstName + ' ' + user.lastName,
-		phone: user.phone,
+		...(user.notify === 'sms' && { phone: user.phone }),
+		...(user.notify === 'email' && { email: user.email }),
 		headcount: req?.body?.headcount,
+		notify: req?.user?.notify,
 	};
 
 	try {
@@ -149,6 +159,14 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 				new: true,
 			}
 		);
+
+		if (user.notify === 'sms') {
+			await twilioClient.messages.create({
+				body: `Your RSVP has been received!`,
+				from: process.env.TWILIO_NUMBER,
+				to: `+1${user.phone}`,
+			});
+		}
 
 		const updatedAll = await Event.find({});
 		const updatedEvent = await Event.findById(req?.body?.eventId);
@@ -214,6 +232,14 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 			}
 		);
 
+		if (user.notify === 'sms') {
+			await twilioClient.messages.create({
+				body: `Your RSVP has been canceled!`,
+				from: process.env.TWILIO_NUMBER,
+				to: `+1${user.phone}`,
+			});
+		}
+
 		const updatedAll = await Event.find({});
 		const updatedEvent = await Event.findById(req?.body?.eventId);
 		const updatedUser = await User.findById(req?.user?._id);
@@ -227,6 +253,29 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 		});
 	} catch (err) {
 		errors.event = 'Error removing attendee!';
+		return res.status(400).json(errors);
+	}
+});
+
+// Send Reminders
+router.post('/events/reminders', requireAuth, async (req, res) => {
+	let errors = {};
+	const targetEvent = await Event.findById(req?.body?.eventId);
+
+	try {
+		targetEvent.attendees.forEach(async (guest) => {
+			if (guest.notify === 'sms') {
+				await twilioClient.messages.create({
+					body: 'You are only 1 week away from brunch!',
+					from: process.env.TWILIO_NUMBER,
+					to: `+1${guest.phone}`,
+				});
+			}
+		});
+
+		res.json({ success: { message: 'Reminders sent successfully!' } });
+	} catch (err) {
+		errors.reminders = 'Error sending reminders!';
 		return res.status(400).json(errors);
 	}
 });
