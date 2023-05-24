@@ -273,7 +273,7 @@ router.post('/events/reminders', requireAuth, async (req, res) => {
 			}
 		});
 
-		res.json({ success: { message: 'Reminders sent successfully!' } });
+		res.json({ message: 'Reminders sent successfully!' });
 	} catch (err) {
 		errors.reminders = 'Error sending reminders!';
 		return res.status(400).json(errors);
