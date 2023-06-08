@@ -3,17 +3,23 @@ const { model } = require('mongoose');
 const { config } = require('dotenv');
 const { validateEvent, validateRsvp } = require('../util/validators');
 const requireAuth = require('../middleware/requireAuth');
-const sgMail = require('@sendgrid/mail');
+const cloudinary = require('cloudinary').v2;
+// const sgMail = require('@sendgrid/mail');
 const Event = model('Event');
 const User = model('User');
 const router = Router();
 config();
 
-const twilioClient = require('twilio')(
-	process.env.TWILIO_ACCOUNT_SID,
-	process.env.TWILIO_AUTH_TOKEN
-);
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// const twilioClient = require('twilio')(
+// 	process.env.TWILIO_ACCOUNT_SID,
+// 	process.env.TWILIO_AUTH_TOKEN
+// );
+// sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+cloudinary.config({
+	cloud_name: 'dk9gbz4ag',
+	api_key: '462595943588927',
+	api_secret: 'SSKI22R31wZt0-zPEp7yXUTEETY',
+});
 
 // Add
 router.post('/events', requireAuth, async (req, res) => {
@@ -162,23 +168,23 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 			}
 		);
 
-		if (user.notify === 'sms') {
-			await twilioClient.messages.create({
-				body: `Your RSVP has been received!`,
-				from: process.env.TWILIO_NUMBER,
-				to: `+1${user.phone}`,
-			});
-		} else if (user.notify === 'email') {
-			const msg = {
-				to: user.email,
-				from: process.env.SG_BASE_EMAIL,
-				subject: 'RSVP Accepted!',
-				text: "You have successfully RSVP'd for brunch",
-				html: '<strong>See you there!</strong>',
-			};
+		// if (user.notify === 'sms') {
+		// 	await twilioClient.messages.create({
+		// 		body: `Your RSVP has been received!`,
+		// 		from: process.env.TWILIO_NUMBER,
+		// 		to: `+1${user.phone}`,
+		// 	});
+		// } else if (user.notify === 'email') {
+		// 	const msg = {
+		// 		to: user.email,
+		// 		from: process.env.SG_BASE_EMAIL,
+		// 		subject: 'RSVP Accepted!',
+		// 		text: "You have successfully RSVP'd for brunch",
+		// 		html: '<strong>See you there!</strong>',
+		// 	};
 
-			await sgMail.send(msg);
-		}
+		// 	await sgMail.send(msg);
+		// }
 
 		const updatedAll = await Event.find({});
 		const updatedEvent = await Event.findById(req?.body?.eventId);
@@ -244,23 +250,23 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 			}
 		);
 
-		if (user.notify === 'sms') {
-			await twilioClient.messages.create({
-				body: `Your RSVP has been canceled!`,
-				from: process.env.TWILIO_NUMBER,
-				to: `+1${user.phone}`,
-			});
-		} else if (user.notify === 'email') {
-			const msg = {
-				to: user.email,
-				from: process.env.SG_BASE_EMAIL,
-				subject: 'RSVP Canceled!',
-				text: 'You have successfully canceled your RSVP for brunch',
-				html: '<strong>Maybe next month!</strong>',
-			};
+		// if (user.notify === 'sms') {
+		// 	await twilioClient.messages.create({
+		// 		body: `Your RSVP has been canceled!`,
+		// 		from: process.env.TWILIO_NUMBER,
+		// 		to: `+1${user.phone}`,
+		// 	});
+		// } else if (user.notify === 'email') {
+		// 	const msg = {
+		// 		to: user.email,
+		// 		from: process.env.SG_BASE_EMAIL,
+		// 		subject: 'RSVP Canceled!',
+		// 		text: 'You have successfully canceled your RSVP for brunch',
+		// 		html: '<strong>Maybe next month!</strong>',
+		// 	};
 
-			await sgMail.send(msg);
-		}
+		// 	await sgMail.send(msg);
+		// }
 
 		const updatedAll = await Event.find({});
 		const updatedEvent = await Event.findById(req?.body?.eventId);
@@ -285,25 +291,25 @@ router.post('/events/reminders', requireAuth, async (req, res) => {
 	const targetEvent = await Event.findById(req?.body?.eventId);
 
 	try {
-		targetEvent.attendees.forEach(async (guest) => {
-			if (guest.notify === 'sms') {
-				await twilioClient.messages.create({
-					body: 'You are only 1 week away from brunch!',
-					from: process.env.TWILIO_NUMBER,
-					to: `+1${guest.phone}`,
-				});
-			} else if (guest.notify === 'email') {
-				const msg = {
-					to: guest.email,
-					from: process.env.SG_BASE_EMAIL,
-					subject: 'Almost There...',
-					text: 'You are only 1 week away from brunch!',
-					html: '<strong>So close!</strong>',
-				};
+		// targetEvent.attendees.forEach(async (guest) => {
+		// 	if (guest.notify === 'sms') {
+		// 		await twilioClient.messages.create({
+		// 			body: 'You are only 1 week away from brunch!',
+		// 			from: process.env.TWILIO_NUMBER,
+		// 			to: `+1${guest.phone}`,
+		// 		});
+		// 	} else if (guest.notify === 'email') {
+		// 		const msg = {
+		// 			to: guest.email,
+		// 			from: process.env.SG_BASE_EMAIL,
+		// 			subject: 'Almost There...',
+		// 			text: 'You are only 1 week away from brunch!',
+		// 			html: '<strong>So close!</strong>',
+		// 		};
 
-				await sgMail.send(msg);
-			}
-		});
+		// 		await sgMail.send(msg);
+		// 	}
+		// });
 
 		res.json({ message: 'Reminders sent successfully!' });
 	} catch (err) {
@@ -330,6 +336,24 @@ router.delete('/events/:id', requireAuth, async (req, res) => {
 	} catch (err) {
 		errors.event = 'Error deleting event!';
 		return res.status(400).json(errors);
+	}
+});
+
+router.post('/photo/upload', async (req, res) => {
+	try {
+		await cloudinary.uploader.upload(
+			'https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg',
+			{ public_id: 'olympic_flag' }
+		);
+		const url = cloudinary.url('olympic_flag', {
+			width: 100,
+			height: 150,
+			Crop: 'fill',
+		});
+
+		res.json(url);
+	} catch (err) {
+		console.log(err);
 	}
 });
 
