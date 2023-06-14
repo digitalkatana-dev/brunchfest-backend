@@ -35,8 +35,21 @@ router.post('/events', requireAuth, async (req, res) => {
 			...req?.body,
 			createdBy: _id,
 		};
-		const event = new Event(eventData);
-		await event?.save();
+		const newEvent = new Event(eventData);
+		const event = await newEvent?.save();
+
+		await User.findByIdAndUpdate(
+			_id,
+			{
+				$push: {
+					myEvents: event._id,
+				},
+			},
+			{
+				new: true,
+			}
+		);
+
 		res.json(event);
 	} catch (err) {
 		errors.event = 'Error creating event!';
@@ -160,7 +173,7 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 			req?.user?._id,
 			{
 				$push: {
-					myEvents: req?.body?.eventId,
+					eventsAttending: req?.body?.eventId,
 				},
 			},
 			{
@@ -189,12 +202,12 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 		const updatedAll = await Event.find({});
 		const updatedEvent = await Event.findById(req?.body?.eventId);
 		const updatedUser = await User.findById(req?.user?._id);
-		const updatedMyEvents = updatedUser?.myEvents;
+		const updatedEventsAttending = updatedUser?.eventsAttending;
 
 		res.json({
 			updatedAll,
 			updatedEvent,
-			updatedMyEvents,
+			updatedEventsAttending,
 			success: { message: 'You are now attending this event!' },
 		});
 	} catch (err) {
@@ -242,7 +255,7 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 			req?.user?._id,
 			{
 				$pull: {
-					myEvents: req?.body?.eventId,
+					eventsAttending: req?.body?.eventId,
 				},
 			},
 			{
@@ -271,12 +284,12 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 		const updatedAll = await Event.find({});
 		const updatedEvent = await Event.findById(req?.body?.eventId);
 		const updatedUser = await User.findById(req?.user?._id);
-		const updatedMyEvents = updatedUser?.myEvents;
+		const updatedEventsAttending = updatedUser?.eventsAttending;
 
 		res.json({
 			updatedAll,
 			updatedEvent,
-			updatedMyEvents,
+			updatedEventsAttending,
 			success: { message: 'You are no longer attending this event!' },
 		});
 	} catch (err) {

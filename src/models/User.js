@@ -39,6 +39,9 @@ const userSchema = new Schema(
 		myEvents: {
 			type: Array,
 		},
+		eventsAttending: {
+			type: Array,
+		},
 		passwordChangeAt: {
 			type: Date,
 		},
