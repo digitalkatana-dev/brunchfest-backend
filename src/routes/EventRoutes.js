@@ -21,6 +21,19 @@ cloudinary.config({
 	api_secret: 'SSKI22R31wZt0-zPEp7yXUTEETY',
 });
 
+const isEmail = (data) => {
+	const regEx =
+		/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	if (data?.match(regEx)) return true;
+	else return false;
+};
+
+const isPhone = (data) => {
+	const regEx = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+	if (data?.match(regEx)) return true;
+	else return false;
+};
+
 // Add
 router.post('/events', requireAuth, async (req, res) => {
 	const { _id } = req?.user;
@@ -58,39 +71,6 @@ router.post('/events', requireAuth, async (req, res) => {
 	}
 });
 
-// Get All
-router.get('/events', async (req, res) => {
-	let errors = {};
-
-	try {
-		const events = await Event.find({});
-		res.json(events);
-	} catch (err) {
-		errors.events = 'Error getting events';
-		return res.status(400).json(errors);
-	}
-});
-
-// Get 1
-router.get('/events/:id', requireAuth, async (req, res) => {
-	let errors = {};
-	const { id } = req?.params;
-
-	try {
-		const event = await Event.findById(id);
-
-		if (!event) {
-			errors.event = 'Error, event not found!';
-			return res.status(404).json(errors);
-		}
-
-		res.json(event);
-	} catch (err) {
-		errors.event = 'Error getting event';
-		return res.status(400).json(errors);
-	}
-});
-
 // Update
 router.put('/events/update/:id', requireAuth, async (req, res) => {
 	const { id } = req?.params;
@@ -124,6 +104,73 @@ router.put('/events/update/:id', requireAuth, async (req, res) => {
 		});
 	} catch (err) {
 		errors.event = 'Error updating event!';
+		return res.status(400).json(errors);
+	}
+});
+
+// Send Invites
+router.post('/events/invites', requireAuth, async (req, res) => {
+	let errors = {};
+	const { inviteList } = req?.body;
+
+	try {
+		// inviteList.forEach(async item => {
+		// 	if(isEmail(item)) {
+		// 		const msg = {
+		// 			to: item,
+		// 			from: process.env.SG_BASE_EMAIL,
+		// 			subject: "Let's do brunch!",
+		// 			text: `Hello! You have been invited to brunch by ${req?.user?.firstName} ${req?.user?.lastName}`,
+		// 			html: "Click <a href='https://brunchfest.onrender.com'>here</a> to RSVP!"
+		// 		}
+
+		// 		await sgMail.send(msg)
+		// 	} else if (isPhone(item)) {
+		// 		await twilioClient.messages.create({
+		// 			body: `Hello! You have been invited to brunch by ${req?.user?.firstName} ${req?.user?.lastName}. Please visit https://brunchfest.onrender.com to RSVP!`,
+		// 			from: process.env.TWILIO_NUMBER,
+		// 			to: `+1${item}`
+		// 		})
+		// 	}
+		// });
+
+		res.json({ message: 'Invites sent successfully!' });
+	} catch (err) {
+		errors.invites = 'Error sending invites!';
+		console.log('Invite Error', err);
+		return res.status(400).json(errors);
+	}
+});
+
+// Get All
+router.get('/events', async (req, res) => {
+	let errors = {};
+
+	try {
+		const events = await Event.find({});
+		res.json(events);
+	} catch (err) {
+		errors.events = 'Error getting events';
+		return res.status(400).json(errors);
+	}
+});
+
+// Get 1
+router.get('/events/:id', requireAuth, async (req, res) => {
+	let errors = {};
+	const { id } = req?.params;
+
+	try {
+		const event = await Event.findById(id);
+
+		if (!event) {
+			errors.event = 'Error, event not found!';
+			return res.status(404).json(errors);
+		}
+
+		res.json(event);
+	} catch (err) {
+		errors.event = 'Error getting event';
 		return res.status(400).json(errors);
 	}
 });

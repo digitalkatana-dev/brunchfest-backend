@@ -91,6 +91,7 @@ exports.validateReset = (data) => {
 exports.validateEvent = (data) => {
 	let errors = {};
 
+	if (isEmpty(data?.eventType)) errors.eventType = 'Must not be empty!';
 	if (isEmpty(data?.date)) errors.date = 'Must not be empty!';
 	if (isEmpty(data?.time)) errors.time = 'Must not be empty!';
 	if (isEmpty(data?.location)) errors.location = 'Must not be empty!';
