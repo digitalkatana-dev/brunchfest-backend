@@ -43,6 +43,7 @@ router.post('/users/register', async (req, res) => {
 			notify: user?.notify,
 			isAdmin: user?.isAdmin,
 			myEvents: user?.myEvents,
+			eventsAttending: user?.eventsAttending,
 		};
 
 		res.json({ userData, token });
@@ -87,6 +88,7 @@ router.post('/users/login', async (req, res) => {
 			notify: user?.notify,
 			isAdmin: user?.isAdmin,
 			myEvents: user?.myEvents,
+			eventsAttending: user?.eventsAttending,
 		};
 
 		res.json({ userData, token });
@@ -191,6 +193,7 @@ router.get('/users', requireAuth, async (req, res) => {
 				notify: user?.notify,
 				isAdmin: user?.isAdmin,
 				myEvents: user?.myEvents,
+				eventsAttending: user?.eventsAttending,
 			});
 		});
 
@@ -223,6 +226,7 @@ router.get('/users/:id', requireAuth, async (req, res) => {
 			notify: user?.notify,
 			isAdmin: user?.isAdmin,
 			myEvents: user?.myEvents,
+			eventsAttending: user?.eventsAttending,
 		};
 
 		res.json(userData);
