@@ -22,6 +22,19 @@ const isEmpty = (data) => {
 	else return false;
 };
 
+exports.isEmail = (data) => {
+	const regEx =
+		/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	if (data?.match(regEx)) return true;
+	else return false;
+};
+
+exports.isPhone = (data) => {
+	const regEx = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+	if (data?.match(regEx)) return true;
+	else return false;
+};
+
 exports.validateRegistration = (data) => {
 	let errors = {};
 

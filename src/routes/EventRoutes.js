@@ -1,38 +1,30 @@
 const { Router } = require('express');
 const { model } = require('mongoose');
 const { config } = require('dotenv');
-const { validateEvent, validateRsvp } = require('../util/validators');
+const {
+	isEmail,
+	isPhone,
+	validateEvent,
+	validateRsvp,
+} = require('../util/validators');
 const requireAuth = require('../middleware/requireAuth');
 const cloudinary = require('cloudinary').v2;
-// const sgMail = require('@sendgrid/mail');
+const sgMail = require('@sendgrid/mail');
 const Event = model('Event');
 const User = model('User');
 const router = Router();
 config();
 
-// const twilioClient = require('twilio')(
-// 	process.env.TWILIO_ACCOUNT_SID,
-// 	process.env.TWILIO_AUTH_TOKEN
-// );
-// sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const twilioClient = require('twilio')(
+	process.env.TWILIO_ACCOUNT_SID,
+	process.env.TWILIO_AUTH_TOKEN
+);
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 cloudinary.config({
 	cloud_name: 'dk9gbz4ag',
 	api_key: '462595943588927',
 	api_secret: 'SSKI22R31wZt0-zPEp7yXUTEETY',
 });
-
-const isEmail = (data) => {
-	const regEx =
-		/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-	if (data?.match(regEx)) return true;
-	else return false;
-};
-
-const isPhone = (data) => {
-	const regEx = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
-	if (data?.match(regEx)) return true;
-	else return false;
-};
 
 // Add
 router.post('/events', requireAuth, async (req, res) => {
@@ -63,25 +55,27 @@ router.post('/events', requireAuth, async (req, res) => {
 			}
 		);
 
-		// req?.body?.invitedGuests?.forEach(async (item) => {
-		// 	if (isPhone(item)) {
-		// 		await twilioClient.messages.create({
-		// 			body: 'You have been invited to brunch!',
-		// 			from: process.env.TWILIO_NUMBER,
-		// 			to: `+1${item}`,
-		// 		});
-		// 	} else if (isEmail(item)) {
-		// 		const msg = {
-		// 			to: item,
-		// 			from: process.env.SG_BASE_EMAIL,
-		// 			subject: 'You have been invited to brunch',
-		// 			text: 'You have been in vited to brunch by this user',
-		// 			html: '<strong>Click here!</strong>',
-		// 		};
+		req?.body?.invitedGuests?.forEach(async (item) => {
+			if (isPhone(item)) {
+				await twilioClient.messages.create({
+					body: `You've been invited to ${req?.body?.type} on ${req?.body?.date} at ${req?.body?.time} by ${req?.user?.firstName}. Click here -> https://brunchfest.onrender.com to RSVP!`,
+					from: process.env.TWILIO_NUMBER,
+					to: `+1${item}`,
+				});
+			} else if (isEmail(item)) {
+				const msg = {
+					to: item,
+					from: process.env.SG_BASE_EMAIL,
+					subject: `You have been invited to ${req?.body?.type}!`,
+					html: `<div>
+						<h4>You've been invited to ${req?.body?.type} on ${req?.body?.date} at ${req?.body?.time} by ${req?.user?.firstName}.</h4>
+						<h5>Click <a href="https://brunchfest.onrender.com" style={{textDecoration: none}}>here</a> to RSVP!</h5>
+					</div>`,
+				};
 
-		// 		await sgMail.send(msg);
-		// 	}
-		// });
+				await sgMail.send(msg);
+			}
+		});
 
 		res.json(event);
 	} catch (err) {
@@ -128,35 +122,35 @@ router.put('/events/update/:id', requireAuth, async (req, res) => {
 	}
 });
 
-// Send Invites
-router.post('/events/invites', requireAuth, async (req, res) => {
+// Send Invite
+router.post('/events/invite', requireAuth, async (req, res) => {
 	let errors = {};
-	const { inviteList } = req?.body;
+	const { guest, type, date, time } = req?.body;
 
 	try {
-		// inviteList.forEach(async item => {
-		// 	if(isEmail(item)) {
-		// 		const msg = {
-		// 			to: item,
-		// 			from: process.env.SG_BASE_EMAIL,
-		// 			subject: "Let's do brunch!",
-		// 			text: `Hello! You have been invited to brunch by ${req?.user?.firstName} ${req?.user?.lastName}`,
-		// 			html: "Click <a href='https://brunchfest.onrender.com'>here</a> to RSVP!"
-		// 		}
+		if (isPhone(guest)) {
+			await twilioClient.messages.create({
+				body: `You've been invited to ${type} on ${date} at ${time} by ${req?.user?.firstName}. Click here -> https://brunchfest.onrender.com to RSVP!`,
+				from: process.env.TWILIO_NUMBER,
+				to: `+1${guest}`,
+			});
+		} else if (isEmail(guest)) {
+			const msg = {
+				to: guest,
+				from: process.env.SG_BASE_EMAIL,
+				subject: `You have been invited to ${type}!`,
+				html: `<div>
+						<h4>You've been invited to ${type} on ${date} at ${time} by ${req?.user?.firstName}.</h4>
+						<h5>Click <a href="https://brunchfest.onrender.com" style={{textDecoration: none}}>here</a> to RSVP!</h5>
+					</div>`,
+			};
 
-		// 		await sgMail.send(msg)
-		// 	} else if (isPhone(item)) {
-		// 		await twilioClient.messages.create({
-		// 			body: `Hello! You have been invited to brunch by ${req?.user?.firstName} ${req?.user?.lastName}. Please visit https://brunchfest.onrender.com to RSVP!`,
-		// 			from: process.env.TWILIO_NUMBER,
-		// 			to: `+1${item}`
-		// 		})
-		// 	}
-		// });
+			await sgMail.send(msg);
+		}
 
-		res.json({ message: 'Invites sent successfully!' });
+		res.json({ message: 'Invite sent successfully!' });
 	} catch (err) {
-		errors.invites = 'Error sending invites!';
+		errors.invite = 'Error sending invite!';
 		console.log('Invite Error', err);
 		return res.status(400).json(errors);
 	}
@@ -248,23 +242,23 @@ router.put('/events/add-attendee', requireAuth, async (req, res) => {
 			}
 		);
 
-		// if (user.notify === 'sms') {
-		// 	await twilioClient.messages.create({
-		// 		body: `Your RSVP has been received!`,
-		// 		from: process.env.TWILIO_NUMBER,
-		// 		to: `+1${user.phone}`,
-		// 	});
-		// } else if (user.notify === 'email') {
-		// 	const msg = {
-		// 		to: user.email,
-		// 		from: process.env.SG_BASE_EMAIL,
-		// 		subject: 'RSVP Accepted!',
-		// 		text: "You have successfully RSVP'd for brunch",
-		// 		html: '<strong>See you there!</strong>',
-		// 	};
+		if (user.notify === 'sms') {
+			await twilioClient.messages.create({
+				body: `Your RSVP has been received!`,
+				from: process.env.TWILIO_NUMBER,
+				to: `+1${user.phone}`,
+			});
+		} else if (user.notify === 'email') {
+			const msg = {
+				to: user.email,
+				from: process.env.SG_BASE_EMAIL,
+				subject: 'RSVP Accepted!',
+				text: "You have successfully RSVP'd for brunch",
+				html: '<strong>See you there!</strong>',
+			};
 
-		// 	await sgMail.send(msg);
-		// }
+			await sgMail.send(msg);
+		}
 
 		const updatedAll = await Event.find({});
 		const updatedEvent = await Event.findById(req?.body?.eventId);
@@ -330,23 +324,23 @@ router.put('/events/remove-attendee', requireAuth, async (req, res) => {
 			}
 		);
 
-		// if (user.notify === 'sms') {
-		// 	await twilioClient.messages.create({
-		// 		body: `Your RSVP has been canceled!`,
-		// 		from: process.env.TWILIO_NUMBER,
-		// 		to: `+1${user.phone}`,
-		// 	});
-		// } else if (user.notify === 'email') {
-		// 	const msg = {
-		// 		to: user.email,
-		// 		from: process.env.SG_BASE_EMAIL,
-		// 		subject: 'RSVP Canceled!',
-		// 		text: 'You have successfully canceled your RSVP for brunch',
-		// 		html: '<strong>Maybe next month!</strong>',
-		// 	};
+		if (user.notify === 'sms') {
+			await twilioClient.messages.create({
+				body: `Your RSVP has been canceled!`,
+				from: process.env.TWILIO_NUMBER,
+				to: `+1${user.phone}`,
+			});
+		} else if (user.notify === 'email') {
+			const msg = {
+				to: user.email,
+				from: process.env.SG_BASE_EMAIL,
+				subject: 'RSVP Canceled!',
+				text: 'You have successfully canceled your RSVP for brunch',
+				html: '<strong>Maybe next month!</strong>',
+			};
 
-		// 	await sgMail.send(msg);
-		// }
+			await sgMail.send(msg);
+		}
 
 		const updatedAll = await Event.find({});
 		const updatedEvent = await Event.findById(req?.body?.eventId);
@@ -371,25 +365,25 @@ router.post('/events/reminders', requireAuth, async (req, res) => {
 	const targetEvent = await Event.findById(req?.body?.eventId);
 
 	try {
-		// targetEvent.attendees.forEach(async (guest) => {
-		// 	if (guest.notify === 'sms') {
-		// 		await twilioClient.messages.create({
-		// 			body: 'You are only 1 week away from brunch!',
-		// 			from: process.env.TWILIO_NUMBER,
-		// 			to: `+1${guest.phone}`,
-		// 		});
-		// 	} else if (guest.notify === 'email') {
-		// 		const msg = {
-		// 			to: guest.email,
-		// 			from: process.env.SG_BASE_EMAIL,
-		// 			subject: 'Almost There...',
-		// 			text: 'You are only 1 week away from brunch!',
-		// 			html: '<strong>So close!</strong>',
-		// 		};
+		targetEvent.attendees.forEach(async (guest) => {
+			if (guest.notify === 'sms') {
+				await twilioClient.messages.create({
+					body: 'You are only 1 week away from brunch!',
+					from: process.env.TWILIO_NUMBER,
+					to: `+1${guest.phone}`,
+				});
+			} else if (guest.notify === 'email') {
+				const msg = {
+					to: guest.email,
+					from: process.env.SG_BASE_EMAIL,
+					subject: 'Almost There...',
+					text: 'You are only 1 week away from brunch!',
+					html: '<strong>So close!</strong>',
+				};
 
-		// 		await sgMail.send(msg);
-		// 	}
-		// });
+				await sgMail.send(msg);
+			}
+		});
 
 		res.json({ message: 'Reminders sent successfully!' });
 	} catch (err) {
