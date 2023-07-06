@@ -63,6 +63,26 @@ router.post('/events', requireAuth, async (req, res) => {
 			}
 		);
 
+		// req?.body?.invitedGuests?.forEach(async (item) => {
+		// 	if (isPhone(item)) {
+		// 		await twilioClient.messages.create({
+		// 			body: 'You have been invited to brunch!',
+		// 			from: process.env.TWILIO_NUMBER,
+		// 			to: `+1${item}`,
+		// 		});
+		// 	} else if (isEmail(item)) {
+		// 		const msg = {
+		// 			to: item,
+		// 			from: process.env.SG_BASE_EMAIL,
+		// 			subject: 'You have been invited to brunch',
+		// 			text: 'You have been in vited to brunch by this user',
+		// 			html: '<strong>Click here!</strong>',
+		// 		};
+
+		// 		await sgMail.send(msg);
+		// 	}
+		// });
+
 		res.json(event);
 	} catch (err) {
 		errors.event = 'Error creating event!';
