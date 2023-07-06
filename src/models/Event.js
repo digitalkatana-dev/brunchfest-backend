@@ -22,6 +22,11 @@ const eventSchema = new Schema(
 			type: String,
 			required: true,
 		},
+		invitedGuests: [
+			{
+				type: String,
+			},
+		],
 		createdBy: {
 			type: Schema.Types.ObjectId,
 			ref: 'User',
