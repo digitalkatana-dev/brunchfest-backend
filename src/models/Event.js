@@ -24,7 +24,7 @@ const eventSchema = new Schema(
 		},
 		invitedGuests: [
 			{
-				type: String,
+				type: Object,
 			},
 		],
 		createdBy: {

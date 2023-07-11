@@ -9,6 +9,8 @@ const {
 	validateLogin,
 	validateForgot,
 	validateReset,
+	isEmail,
+	isPhone,
 } = require('../util/validators');
 const requireAuth = require('../middleware/requireAuth');
 // const sgMail = require('@sendgrid/mail');
@@ -200,6 +202,66 @@ router.get('/users', requireAuth, async (req, res) => {
 		res.json(userData);
 	} catch (err) {
 		errors.user = 'Error getting users';
+		return res.status(400).json(errors);
+	}
+});
+
+// Find 1
+router.post('/users/find', requireAuth, async (req, res) => {
+	let errors = {};
+	let user;
+	let userData;
+
+	const { guest } = req?.body;
+
+	try {
+		if (isEmail(guest)) {
+			user = await User.findOne({ email: guest });
+
+			if (user) {
+				userData = {
+					_id: user?._id,
+					firstName: user?.firstName,
+					lastName: user?.lastName,
+					phone: user?.phone,
+					email: user?.email,
+					notify: user?.notify,
+				};
+
+				res.json(userData);
+			} else {
+				userData = {
+					_id: guest,
+					email: guest,
+					notify: 'email',
+				};
+				res.json(userData);
+			}
+		} else if (isPhone(guest)) {
+			user = await User.findOne({ phone: guest });
+
+			if (user) {
+				userData = {
+					_id: user?._id,
+					firstName: user?.firstName,
+					lastName: user?.lastName,
+					phone: user?.phone,
+					email: user?.email,
+					notify: user?.notify,
+				};
+
+				res.json(userData);
+			} else {
+				userData = {
+					_id: guest,
+					phone: guest,
+					notify: 'sms',
+				};
+				res.json(userData);
+			}
+		}
+	} catch (err) {
+		errors.user = 'Error searching for user';
 		return res.status(400).json(errors);
 	}
 });
