@@ -56,15 +56,15 @@ router.post('/events', requireAuth, async (req, res) => {
 		);
 
 		req?.body?.invitedGuests?.forEach(async (item) => {
-			if (isPhone(item)) {
+			if (item.notify === 'sms') {
 				await twilioClient.messages.create({
 					body: `You've been invited to ${req?.body?.type} on ${req?.body?.date} at ${req?.body?.time} by ${req?.user?.firstName}. Click here -> https://brunchfest.onrender.com to RSVP!`,
 					from: process.env.TWILIO_NUMBER,
-					to: `+1${item}`,
+					to: `+1${item.phone}`,
 				});
-			} else if (isEmail(item)) {
+			} else if (item.notify === 'email') {
 				const msg = {
-					to: item,
+					to: item.email,
 					from: process.env.SG_BASE_EMAIL,
 					subject: `You have been invited to ${req?.body?.type}!`,
 					html: `<div>
