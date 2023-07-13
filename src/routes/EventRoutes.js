@@ -161,7 +161,7 @@ router.get('/events', async (req, res) => {
 	let errors = {};
 
 	try {
-		const events = await Event.find({});
+		const events = await Event.find({}).sort('date');
 		res.json(events);
 	} catch (err) {
 		errors.events = 'Error getting events';
